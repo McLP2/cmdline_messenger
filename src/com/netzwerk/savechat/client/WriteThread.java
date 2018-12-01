@@ -86,7 +86,7 @@ public class WriteThread extends Thread {
                 ex.printStackTrace();
             }
             if (text.equals("!exit")) {
-                break;
+                System.exit(0);
             } else if (text.equals("!change")) {
                 writer.println(Crypt.encrypt("p", svrkey));
                 client.ptrkey = null;
@@ -98,12 +98,5 @@ public class WriteThread extends Thread {
 
 
         } while (true);
-
-        try {
-            socket.close();
-        } catch (IOException ex) {
-            System.out.println("Error: " + ex.getMessage());
-            System.exit(-1);
-        }
     }
 }
