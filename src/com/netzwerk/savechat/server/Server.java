@@ -19,6 +19,8 @@ public class Server {
 
             System.out.println("Chat Server is listening on port " + port);
 
+
+            //noinspection InfiniteLoopStatement
             while (true) {
                 Socket socket = serverSocket.accept();
 

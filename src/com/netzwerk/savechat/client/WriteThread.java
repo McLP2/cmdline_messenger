@@ -89,6 +89,7 @@ public class WriteThread extends Thread {
                 break;
             } else if (text.equals("!change")) {
                 writer.println(Crypt.encrypt("p", svrkey));
+                client.ptrkey = null;
             } else if (client.ptrkey == null) {
                 writer.println(Crypt.encrypt(text, svrkey));
             } else {

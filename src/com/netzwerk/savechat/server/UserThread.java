@@ -111,10 +111,11 @@ public class UserThread extends Thread {
             sendMessage("mThis user is currently not available.");
             getPartner(reader);
         }
+        sendMessage("mYou are now connected to " + partner.getName() + "!");
+        partner.getThread().partner = user;
+        partner.getThread().sendMessage("mYou are now connected to " + user.getName() + ".");
         sendMessage("k" + Crypt.encode(partner.getPubkey()));
         partner.getThread().sendMessage("k" + Crypt.encode(user.getPubkey()));
-        sendMessage("mYour messages will be send to " + partner.getName() + "!");
-        partner.getThread().sendMessage("mYou are receiving messages from " + user.getName() + ".");
     }
 
     /**
