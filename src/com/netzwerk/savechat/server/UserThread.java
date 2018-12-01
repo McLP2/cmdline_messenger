@@ -1,5 +1,7 @@
 package com.netzwerk.savechat.server;
 
+import com.netzwerk.savechat.Crypt;
+
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -18,81 +20,66 @@ public class UserThread extends Thread {
     private Server server;
     private PrintWriter writer;
     private User user, partner;
+    private PublicKey userKey;
+    private PrivateKey prvkey;
 
     UserThread(Socket socket, Server server) {
         this.socket = socket;
         this.server = server;
-    }
-
-    private String decrypt(String base64String) {
-        Base64.Decoder decoder = Base64.getDecoder();
-        byte[] bytes = decoder.decode(base64String);
-        String result = "";
-        try {
-            PrivateKey prvkey = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(prvbytes));
-            Cipher cipher = Cipher.getInstance("RSA");
-            cipher.init(Cipher.DECRYPT_MODE, prvkey);
-            result = new String(cipher.doFinal(bytes));
-        } catch (NoSuchAlgorithmException ex) {
-            System.out.println("WTF how did this happen??! " + ex.getMessage());
-        } catch (NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InvalidKeySpecException | InvalidKeyException ex) {
-            System.out.println("Error: " + ex.getMessage());
-        }
-        return result;
-    }
-
-    private String encrypt(String string, PublicKey publicKey) {
-        Base64.Encoder encoder = Base64.getEncoder();
-        byte[] result = new byte[40];
-        try {
-            Cipher cipher = Cipher.getInstance("RSA");
-            cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-            result = cipher.doFinal(string.getBytes());
-        } catch (NoSuchAlgorithmException ex) {
-            System.out.println("WTF how did this happen??! " + ex.getMessage());
-        } catch (IllegalBlockSizeException | BadPaddingException | NoSuchPaddingException | InvalidKeyException ex) {
-            System.out.println("Error: " + ex.getMessage());
-        }
-        return encoder.encodeToString(result);
+        prvkey = Crypt.privateKeyFromBytes(prvbytes);
     }
 
     public void run() {
         String userName = null;
         String serverMessage;
         try {
+            // init streams
             InputStream input = socket.getInputStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 
             OutputStream output = socket.getOutputStream();
             writer = new PrintWriter(output, true);
 
-            userName = decrypt(reader.readLine());
-            user = new User(userName); //todo allow old users
+            // get key
+            String userKeyEncoded = Crypt.decrypt(reader.readLine(), prvkey);
+            userKey = Crypt.publicKeyFromBytes(Crypt.decode(userKeyEncoded));
+            // get user
+            String userHash = Crypt.hash(Crypt.decrypt(reader.readLine(), prvkey).getBytes());
+            user = server.getUserByHash(userHash);
+            if (user == null) {
+                sendMessage("mPlease enter your username:");
+                userName = Crypt.decrypt(reader.readLine(), prvkey);
+                user = new User(userName);
+                user.setHash(userHash);
+                server.addUser(user);
+            }
             user.setThread(this);
-            server.addUser(user);
-            String partnerName = decrypt(reader.readLine());
+
+            // get partner
+            sendMessage("mPlease enter your chat partner's username:");
+            String partnerName = Crypt.decrypt(reader.readLine(), prvkey);
             partner = server.getUserByName(partnerName);
             if (partner == null) {
-                writer.println("This user is not available.");
+                sendMessage("mThis user is not available.");
             }
 
             String clientMessage;
 
             do {
-                clientMessage = decrypt(reader.readLine());
-                serverMessage = "R " + userName + " " + clientMessage;
+                clientMessage = Crypt.decrypt(reader.readLine(), prvkey);
+                serverMessage = "e" + clientMessage;
                 partner.getThread().sendMessage(serverMessage);
 
             } while (!clientMessage.equals("!LOGOFF"));
 
             user.setOnline(false);
             socket.close();
-            partner.getThread().sendMessage("Ur Partner Logged off");
+            partner.getThread().sendMessage("mYour Partner Logged off");
 
         } catch (SocketException ex) {
             if (userName != null) {
                 user.setOnline(false);
-                partner.getThread().sendMessage("Ur Partner Logged off");
+                partner.getThread().sendMessage("mYour Partner Logged off");
             }
         } catch (IOException ex) {
             System.out.println("Error in UserThread: " + ex.getMessage());
@@ -104,6 +91,6 @@ public class UserThread extends Thread {
      * Sends a message to the client.
      */
     private void sendMessage(String message) {
-        writer.println(message);
+        writer.println(Crypt.encrypt(message, userKey));
     }
 }

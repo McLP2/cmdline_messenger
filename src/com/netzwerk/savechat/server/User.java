@@ -3,7 +3,7 @@ package com.netzwerk.savechat.server;
 import java.util.Arrays;
 
 class User {
-    private String name;
+    private String name, hash;
     private byte[] pubkey;
     private boolean online;
     private UserThread userThread;
@@ -43,5 +43,13 @@ class User {
             return true;
         } else
             return Arrays.equals(this.pubkey, pubkey);
+    }
+
+    public void setHash(String hash) {
+        this.hash = hash;
+    }
+
+    public String getHash() {
+        return this.hash;
     }
 }

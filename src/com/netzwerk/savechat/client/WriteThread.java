@@ -1,8 +1,13 @@
 package com.netzwerk.savechat.client;
 
+import com.netzwerk.savechat.Crypt;
+
 import javax.crypto.*;
 import java.io.*;
 import java.net.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.*;
 import java.util.Base64;
@@ -14,6 +19,7 @@ public class WriteThread extends Thread {
     private PrintWriter writer;
     private Socket socket;
     private Client client;
+    private PublicKey svrkey;
 
     WriteThread(Socket socket, Client client) {
         this.socket = socket;
@@ -26,22 +32,8 @@ public class WriteThread extends Thread {
             System.out.println("Error getting output stream: " + ex.getMessage());
             ex.printStackTrace();
         }
-    }
 
-    private String encrypt(String string) {
-        Base64.Encoder encoder = Base64.getEncoder();
-        byte[] result = new byte[40];
-        try {
-            PublicKey pubkey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(pubbytes));
-            Cipher cipher = Cipher.getInstance("RSA");
-            cipher.init(Cipher.ENCRYPT_MODE, pubkey);
-            result = cipher.doFinal(string.getBytes());
-        } catch (NoSuchAlgorithmException ex) {
-            System.out.println("WTF how did this happen??! " + ex.getMessage());
-        } catch (NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InvalidKeySpecException | InvalidKeyException ex) {
-            System.out.println("Error: " + ex.getMessage());
-        }
-        return encoder.encodeToString(result);
+        svrkey = Crypt.publicKeyFromBytes(pubbytes);
     }
 
     private String read(BufferedReader reader) {
@@ -57,17 +49,44 @@ public class WriteThread extends Thread {
     public void run() {
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        // send key
+        try {
+            KeyPairGenerator keygen = KeyPairGenerator.getInstance("RSA");
+            keygen.initialize(4096);
+            KeyPair rsaKeys = keygen.genKeyPair();
+            client.pubkey = rsaKeys.getPublic();
+            client.prvkey = rsaKeys.getPrivate();
+            String encodedPubkey = Crypt.encode(client.pubkey.getEncoded());
+            writer.println(Crypt.encrypt(encodedPubkey, svrkey));
+        } catch (NoSuchAlgorithmException ex) {
+            System.out.println("Error: " + ex.getMessage());
+        }
+        // send pass
+        String pass = "";
+        Path path = Paths.get("pass");
+        if (Files.exists(path)) {
+            try {
+                pass = new String(Files.readAllBytes(path));
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        } else {
+            SecureRandom random = new SecureRandom();
+            char[] randomdata = new char[128];
+            for (int i = 0; i < randomdata.length; i++) {
+                randomdata[i] = (char) (32 + random.nextInt(90));
+            }
+            pass = new String(randomdata);
+            try {
+                Files.write(path, pass.getBytes());
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        writer.println(Crypt.encrypt(pass, svrkey));
 
-        System.out.print("\nEnter your name: ");
-        String userName = read(reader);
-        writer.println(encrypt(userName));
-
-        System.out.print("\nEnter your partner's name: ");
-        String partnerName = read(reader);
-        writer.println(encrypt(partnerName));
-
+        // send console
         String text = "";
-
         do {
             try {
                 text = reader.readLine();
@@ -75,15 +94,18 @@ public class WriteThread extends Thread {
                 System.out.println("Error: " + ex.getMessage());
                 ex.printStackTrace();
             }
-            writer.println(encrypt(text));
+            if (client.ptrkey == null) {
+                writer.println(Crypt.encrypt(text, svrkey));
+            } else {
+                writer.println(Crypt.encrypt(Crypt.encrypt(text,client.ptrkey),svrkey));
+            }
 
         } while (!text.equals("!LOGOFF"));
 
         try {
             socket.close();
         } catch (IOException ex) {
-
-            System.out.println("Error writing to server: " + ex.getMessage());
+            System.out.println("Error: " + ex.getMessage());
         }
     }
 }

@@ -2,11 +2,15 @@ package com.netzwerk.savechat.client;
 
 import java.net.*;
 import java.io.*;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 
 public class Client {
     private String hostname;
     private int port;
     private String userName;
+    PublicKey pubkey, ptrkey;
+    PrivateKey prvkey;
 
     public Client(String hostname, int port) {
         this.hostname = hostname;
@@ -19,7 +23,7 @@ public class Client {
 
             System.out.println("Connected to the chat server");
 
-            new ReadThread(socket).start();
+            new ReadThread(socket, this).start();
             new WriteThread(socket, this).start();
 
         } catch (UnknownHostException ex) {
