@@ -12,12 +12,10 @@ import java.security.*;
 public class WriteThread extends Thread {
 
     private PrintWriter writer;
-    private Socket socket;
     private Client client;
     private PublicKey svrkey;
 
     WriteThread(Socket socket, Client client) {
-        this.socket = socket;
         this.client = client;
 
         try {
