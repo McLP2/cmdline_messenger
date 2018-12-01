@@ -79,8 +79,8 @@ public class UserThread extends Thread {
             partner.getThread().sendMessage("mYour partner logged off");
 
         } catch (SocketException ex) {
+            user.setOnline(false);
             if (partner != null) {
-                user.setOnline(false);
                 partner.getThread().sendMessage("mYour partner logged off");
             }
         } catch (IOException ex) {
@@ -115,12 +115,13 @@ public class UserThread extends Thread {
             partner = null;
             sendMessage("mThis user is currently not available.");
             getPartner(reader);
+        } else {
+            sendMessage("mYou are now connected to " + partner.getName() + "!");
+            partner.getThread().partner = user;
+            partner.getThread().sendMessage("mYou are now connected to " + user.getName() + ".");
+            sendMessage("k" + Crypt.encode(partner.getPubkey()));
+            partner.getThread().sendMessage("k" + Crypt.encode(user.getPubkey()));
         }
-        sendMessage("mYou are now connected to " + partner.getName() + "!");
-        partner.getThread().partner = user;
-        partner.getThread().sendMessage("mYou are now connected to " + user.getName() + ".");
-        sendMessage("k" + Crypt.encode(partner.getPubkey()));
-        partner.getThread().sendMessage("k" + Crypt.encode(user.getPubkey()));
     }
 
     /**
