@@ -41,7 +41,13 @@ public class Client {
 
         if (args.length == 2) {
             hostname = args[0];
-            port = Integer.parseInt(args[1]);
+            try {
+                port = Integer.parseInt(args[1]);
+            } catch (Exception e) {
+                System.out.println("Invalid Port: " + args[0]);
+            }
+        } else {
+            System.out.println("Parameters: 1. Hostname, 2. Port");
         }
 
         Client client = new Client(hostname, port);

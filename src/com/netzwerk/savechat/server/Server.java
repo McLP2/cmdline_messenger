@@ -38,7 +38,13 @@ public class Server {
         int port = 22713;
 
         if (args.length == 1) {
-            port = Integer.parseInt(args[0]);
+            try {
+                port = Integer.parseInt(args[0]);
+            } catch (Exception e) {
+                System.out.println("Invalid Port: " + args[0]);
+            }
+        } else {
+            System.out.println("Parameters: 1. Port");
         }
 
         Server server = new Server(port);
