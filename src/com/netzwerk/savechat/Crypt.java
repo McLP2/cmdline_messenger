@@ -1,6 +1,7 @@
 package com.netzwerk.savechat;
 
 import javax.crypto.*;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -10,15 +11,15 @@ import java.util.Base64;
 public class Crypt {
 
     private static final int AES_BIT = 256;
-    private static final int AES_LEN = AES_BIT*2;
+    private static final int AES_LEN = AES_BIT * 2;
 
 
     public static String decrypt(String base64String, PrivateKey privateKey) {
         byte[] bytes = decode(base64String);
         byte[] key = new byte[AES_LEN];
-        System.arraycopy(bytes,0,key,0,AES_LEN);
-        byte[] data = new byte[bytes.length-AES_LEN];
-        System.arraycopy(bytes,AES_LEN,data,0,bytes.length-AES_LEN);
+        System.arraycopy(bytes, 0, key, 0, AES_LEN);
+        byte[] data = new byte[bytes.length - AES_LEN];
+        System.arraycopy(bytes, AES_LEN, data, 0, bytes.length - AES_LEN);
         String result = "";
         try {
             Cipher cipher = Cipher.getInstance("RSA");
@@ -27,7 +28,7 @@ public class Crypt {
 
             cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, secKey);
-            result = new String(cipher.doFinal(data));
+            result = new String(cipher.doFinal(data), StandardCharsets.UTF_16);
         } catch (NoSuchAlgorithmException ex) {
             System.out.println("WTF how did this happen??! " + ex.getMessage());
             ex.printStackTrace();
@@ -49,7 +50,7 @@ public class Crypt {
             // encrypt data
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.ENCRYPT_MODE, secKey);
-            data = cipher.doFinal(string.getBytes());
+            data = cipher.doFinal(string.getBytes(StandardCharsets.UTF_16));
             // wrap key
             cipher = Cipher.getInstance("RSA");
             cipher.init(Cipher.WRAP_MODE, publicKey);
