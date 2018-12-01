@@ -62,7 +62,11 @@ public class UserThread extends Thread {
                 clientMessage = Crypt.decrypt(reader.readLine(), prvkey);
                 switch (clientMessage.charAt(0)) {
                     case 'e':
-                        partner.getThread().sendMessage(clientMessage);
+                        if (partner != null) {
+                            partner.getThread().sendMessage(clientMessage);
+                        } else {
+                            sendMessage("mYou are not connected to a user, type \"!change\" !");
+                        }
                         break;
                     case 'p':
                         getPartner(reader);
@@ -108,6 +112,7 @@ public class UserThread extends Thread {
         String partnerName = Crypt.decrypt(reader.readLine(), prvkey);
         partner = server.getUserByName(partnerName);
         if (partner == null || partner.getThread().partner != null) {
+            partner = null;
             sendMessage("mThis user is currently not available.");
             getPartner(reader);
         }
