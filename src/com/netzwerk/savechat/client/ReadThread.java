@@ -2,19 +2,8 @@ package com.netzwerk.savechat.client;
 
 import com.netzwerk.savechat.Crypt;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import java.io.*;
 import java.net.*;
-import java.security.InvalidKeyException;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.Base64;
 
 public class ReadThread extends Thread {
     private BufferedReader reader;

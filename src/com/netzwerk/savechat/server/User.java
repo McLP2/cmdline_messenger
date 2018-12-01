@@ -1,7 +1,5 @@
 package com.netzwerk.savechat.server;
 
-import java.util.Arrays;
-
 class User {
     private String name, hash;
     private byte[] pubkey;
@@ -10,26 +8,25 @@ class User {
 
     User(String name) {
         this.name = name;
-        this.online = true;
     }
 
-    public void setThread(UserThread userThread) {
+    void setThread(UserThread userThread) {
         this.userThread = userThread;
     }
 
-    public UserThread getThread() {
+    UserThread getThread() {
         return userThread;
     }
 
-    public boolean isOnline() {
+    boolean isOnline() {
         return online;
     }
 
-    public String getName() {
+    String getName() {
         return name;
     }
 
-    public byte[] getPubkey() {
+    byte[] getPubkey() {
         return pubkey;
     }
 
@@ -37,19 +34,15 @@ class User {
         this.online = online;
     }
 
-    public boolean setPubkey(byte[] pubkey) {
-        if (this.pubkey == null) {
-            this.pubkey = pubkey;
-            return true;
-        } else
-            return Arrays.equals(this.pubkey, pubkey);
+    void setPubkey(byte[] pubkey) {
+        this.pubkey = pubkey;
     }
 
-    public void setHash(String hash) {
+    void setHash(String hash) {
         this.hash = hash;
     }
 
-    public String getHash() {
+    String getHash() {
         return this.hash;
     }
 }

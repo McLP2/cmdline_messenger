@@ -8,7 +8,6 @@ import java.security.PublicKey;
 public class Client {
     private String hostname;
     private int port;
-    private String userName;
     PublicKey pubkey, ptrkey;
     PrivateKey prvkey;
 
@@ -35,15 +34,6 @@ public class Client {
         }
 
     }
-
-    void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    String getUserName() {
-        return this.userName;
-    }
-
 
     public static void main(String[] args) {
         String hostname = "localhost";

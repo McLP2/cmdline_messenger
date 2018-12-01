@@ -47,7 +47,7 @@ public class Server {
 
     User getUserByName(String username) {
         for (User user : users) {
-            if (user.getName().equals(username)) return user;
+            if (user.getName().equals(username)) return user.isOnline() ? user : null;
         }
         return null;
     }
