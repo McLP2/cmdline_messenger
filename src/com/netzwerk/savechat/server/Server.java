@@ -8,7 +8,6 @@ public class Server {
 
     private int port;
     private Set<User> users = new HashSet<>();
-    private Set<UserThread> userThreads = new HashSet<>();
 
     private Server(int port) {
         this.port = port;
@@ -25,7 +24,6 @@ public class Server {
                 Socket socket = serverSocket.accept();
 
                 UserThread newUser = new UserThread(socket, this);
-                userThreads.add(newUser);
                 newUser.start();
 
             }
