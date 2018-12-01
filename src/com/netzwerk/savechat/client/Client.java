@@ -12,16 +12,18 @@ public class Client {
     PublicKey pubkey, ptrkey;
     PrivateKey prvkey;
 
-    public Client(String hostname, int port) {
+    private Client(String hostname, int port) {
         this.hostname = hostname;
         this.port = port;
     }
 
-    public void execute() {
+    private void execute() {
         try {
+            System.out.println("Connecting...");
+
             Socket socket = new Socket(hostname, port);
 
-            System.out.println("Connected to the chat server");
+            System.out.println("Establishing encryption...");
 
             new ReadThread(socket, this).start();
             new WriteThread(socket, this).start();

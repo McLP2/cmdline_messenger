@@ -43,6 +43,7 @@ public class UserThread extends Thread {
             // get key
             String userKeyEncoded = Crypt.decrypt(reader.readLine(), prvkey);
             userKey = Crypt.publicKeyFromBytes(Crypt.decode(userKeyEncoded));
+            sendMessage("mWelcome to the server!");
             // get user
             String userHash = Crypt.hash(Crypt.decrypt(reader.readLine(), prvkey).getBytes());
             user = server.getUserByHash(userHash);
@@ -54,14 +55,13 @@ public class UserThread extends Thread {
                 server.addUser(user);
             }
             user.setThread(this);
+            user.setPubkey(userKey.getEncoded());
 
             // get partner
-            sendMessage("mPlease enter your chat partner's username:");
-            String partnerName = Crypt.decrypt(reader.readLine(), prvkey);
-            partner = server.getUserByName(partnerName);
-            if (partner == null) {
-                sendMessage("mThis user is not available.");
-            }
+            getPartner(reader);
+
+            sendMessage("mYour messages will be send to " + partner.getName() + "!");
+            partner.getThread().sendMessage("mYou are receiving messages from " + userName + ".");
 
             String clientMessage;
 
@@ -85,6 +85,17 @@ public class UserThread extends Thread {
             System.out.println("Error in UserThread: " + ex.getMessage());
             ex.printStackTrace();
         }
+    }
+
+    private void getPartner(BufferedReader reader) throws IOException {
+        sendMessage("mPlease enter your chat partner's username:");
+        String partnerName = Crypt.decrypt(reader.readLine(), prvkey);
+        partner = server.getUserByName(partnerName);
+        if (partner == null) {
+            sendMessage("mThis user is not available.");
+            getPartner(reader);
+        }
+        sendMessage("k" + Crypt.encode(partner.getPubkey()));
     }
 
     /**
