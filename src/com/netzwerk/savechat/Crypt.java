@@ -1,9 +1,6 @@
 package com.netzwerk.savechat;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
+import javax.crypto.*;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -12,15 +9,25 @@ import java.util.Base64;
 
 public class Crypt {
 
+    private static final int AES_BIT = 256;
+    private static final int AES_LEN = AES_BIT*2;
+
 
     public static String decrypt(String base64String, PrivateKey privateKey) {
-        Base64.Decoder decoder = Base64.getDecoder();
-        byte[] bytes = decoder.decode(base64String);
+        byte[] bytes = decode(base64String);
+        byte[] key = new byte[AES_LEN];
+        System.arraycopy(bytes,0,key,0,AES_LEN);
+        byte[] data = new byte[bytes.length-AES_LEN];
+        System.arraycopy(bytes,AES_LEN,data,0,bytes.length-AES_LEN);
         String result = "";
         try {
             Cipher cipher = Cipher.getInstance("RSA");
-            cipher.init(Cipher.DECRYPT_MODE, privateKey);
-            result = new String(cipher.doFinal(bytes));
+            cipher.init(Cipher.UNWRAP_MODE, privateKey);
+            SecretKey secKey = (SecretKey) cipher.unwrap(key, "AES", Cipher.SECRET_KEY);
+
+            cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.DECRYPT_MODE, secKey);
+            result = new String(cipher.doFinal(data));
         } catch (NoSuchAlgorithmException ex) {
             System.out.println("WTF how did this happen??! " + ex.getMessage());
             ex.printStackTrace();
@@ -32,12 +39,21 @@ public class Crypt {
     }
 
     public static String encrypt(String string, PublicKey publicKey) {
-        Base64.Encoder encoder = Base64.getEncoder();
-        byte[] result = new byte[40];
+        byte[] aes_key = new byte[AES_LEN];
+        byte[] data = new byte[40];
         try {
-            Cipher cipher = Cipher.getInstance("RSA");
-            cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-            result = cipher.doFinal(string.getBytes());
+            KeyGenerator generator = KeyGenerator.getInstance("AES");
+            generator.init(AES_BIT);
+            SecretKey secKey = generator.generateKey();
+
+            // encrypt data
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.ENCRYPT_MODE, secKey);
+            data = cipher.doFinal(string.getBytes());
+            // wrap key
+            cipher = Cipher.getInstance("RSA");
+            cipher.init(Cipher.WRAP_MODE, publicKey);
+            aes_key = cipher.wrap(secKey);
         } catch (NoSuchAlgorithmException ex) {
             System.out.println("WTF how did this happen??! " + ex.getMessage());
             ex.printStackTrace();
@@ -45,7 +61,13 @@ public class Crypt {
             System.out.println("Error: " + ex.getMessage());
             ex.printStackTrace();
         }
-        return encoder.encodeToString(result);
+
+        // concatenate encrypted key
+        byte[] result = new byte[AES_LEN + data.length];
+        System.arraycopy(aes_key, 0, result, 0, AES_LEN);
+        System.arraycopy(data, 0, result, AES_LEN, data.length);
+
+        return encode(result);
     }
 
     public static byte[] decode(String encoded) {
@@ -55,7 +77,7 @@ public class Crypt {
 
     public static String encode(byte[] data) {
         Base64.Encoder encoder = Base64.getEncoder();
-        return new String(encoder.encode(data));
+        return encoder.encodeToString(data);
     }
 
     public static PrivateKey privateKeyFromBytes(byte[] keyBytes) {
