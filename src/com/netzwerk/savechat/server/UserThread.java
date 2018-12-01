@@ -42,7 +42,7 @@ public class UserThread extends Thread {
             // get key
             String userKeyEncoded = Crypt.decrypt(reader.readLine(), prvkey);
             userKey = Crypt.publicKeyFromBytes(Crypt.decode(userKeyEncoded));
-            sendMessage("mWelcome to the server!");
+            sendMessage("mWelcome to the server!\n ");
             // get user
             String userHash = Crypt.hash(Crypt.decrypt(reader.readLine(), prvkey).getBytes());
             user = server.getUserByHash(userHash);
@@ -54,6 +54,7 @@ public class UserThread extends Thread {
             user.setOnline(true);
             user.setPubkey(userKey.getEncoded());
 
+            sendMessage("mHi, " + user.getName() + "!");
             sendMessage("mIf you want to connect to a user, type \"!change\" !");
 
             String clientMessage;
@@ -116,17 +117,14 @@ public class UserThread extends Thread {
             sendMessage("mThis user is currently not available.");
             getPartner(reader);
         } else {
-            sendMessage("mYou are now connected to " + partner.getName() + "!");
+            sendMessage("mYou are now connected to " + partner.getName() + "!\n");
             partner.getThread().partner = user;
-            partner.getThread().sendMessage("mYou are now connected to " + user.getName() + ".");
+            partner.getThread().sendMessage("mYou are now connected to " + user.getName() + ".\n");
             sendMessage("k" + Crypt.encode(partner.getPubkey()));
             partner.getThread().sendMessage("k" + Crypt.encode(user.getPubkey()));
         }
     }
 
-    /**
-     * Sends a message to the client.
-     */
     private void sendMessage(String message) {
         writer.println(Crypt.encrypt(message, userKey));
     }
