@@ -93,8 +93,7 @@ public class UserThread extends Thread {
     private void getUsername(BufferedReader reader) throws IOException {
         sendMessage("mPlease enter your username:");
         String userName = Crypt.decrypt(reader.readLine(), prvkey);
-        User checkUser = server.getUserByName(userName);
-        if (checkUser != null) {
+        if (server.userNameExists(userName)) {
             sendMessage("mThis user already exists. Try a different name.");
             getUsername(reader);
         } else {

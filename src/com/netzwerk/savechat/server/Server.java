@@ -57,6 +57,12 @@ public class Server {
         }
         return null;
     }
+    boolean userNameExists(String username) {
+        for (User user : users) {
+            if (user.getName().equals(username)) return true;
+        }
+        return false;
+    }
 
     void addUser(User user) {
         users.add(user);
