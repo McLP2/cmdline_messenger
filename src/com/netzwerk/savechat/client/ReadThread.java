@@ -35,7 +35,7 @@ public class ReadThread extends Thread {
                         byte[] pubbytes2 = client.pubkey.getEncoded();
                         byte[] hashbytes = new byte[pubbytes.length];
                         for (int i = 0; i < pubbytes.length; i++) hashbytes[i] = (byte) (pubbytes[i] ^ pubbytes2[i]);
-                        System.out.println("Fingerprint: " + Crypt.hash(hashbytes));
+                        System.out.println("Common fingerprint: " + Crypt.hash(hashbytes));
                         break;
                     case 'e':
                         System.out.println(Crypt.decrypt(message.substring(1), client.prvkey));

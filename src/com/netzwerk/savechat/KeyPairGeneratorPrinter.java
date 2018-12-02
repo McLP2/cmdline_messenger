@@ -12,7 +12,7 @@ public class KeyPairGeneratorPrinter {
         KeyPair rsaKeys = keygen.genKeyPair();
 
         try {
-            Files.write(Paths.get("pubkey"), rsaKeys.getPublic().getEncoded());
+            Files.write(Paths.get("svrkey"), rsaKeys.getPublic().getEncoded());
             Files.write(Paths.get("prvkey"), rsaKeys.getPrivate().getEncoded());
         } catch (IOException ex) {
             ex.printStackTrace();

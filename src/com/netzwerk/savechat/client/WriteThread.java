@@ -27,7 +27,7 @@ public class WriteThread extends Thread {
         }
 
         try {
-            byte[] pubbytes = Files.readAllBytes(Paths.get("pubkey"));
+            byte[] pubbytes = Files.readAllBytes(Paths.get("svrkey"));
             svrkey = Crypt.publicKeyFromBytes(pubbytes);
         } catch (IOException ex) {
             System.out.println("Error reading the server's public key.");
@@ -39,41 +39,10 @@ public class WriteThread extends Thread {
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         // send key
-        try {
-            KeyPairGenerator keygen = KeyPairGenerator.getInstance("RSA");
-            keygen.initialize(4096);
-            KeyPair rsaKeys = keygen.genKeyPair();
-            client.pubkey = rsaKeys.getPublic();
-            client.prvkey = rsaKeys.getPrivate();
-            String encodedPubkey = Crypt.encode(client.pubkey.getEncoded());
-            writer.println(Crypt.encrypt(encodedPubkey, svrkey));
-        } catch (NoSuchAlgorithmException ex) {
-            System.out.println("This should never happen.");
-            System.exit(-1);
-        }
+        loadKeypair();
+
         // send pass
-        String pass = "";
-        Path path = Paths.get("pass");
-        if (Files.exists(path)) {
-            try {
-                pass = new String(Files.readAllBytes(path));
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        } else {
-            SecureRandom random = new SecureRandom();
-            char[] randomdata = new char[128];
-            for (int i = 0; i < randomdata.length; i++) {
-                randomdata[i] = (char) (32 + random.nextInt(90));
-            }
-            pass = new String(randomdata);
-            try {
-                Files.write(path, pass.getBytes());
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
-        writer.println(Crypt.encrypt(pass, svrkey));
+        loadUserIdentifier();
 
         // send console
         String text = "";
@@ -96,5 +65,64 @@ public class WriteThread extends Thread {
 
 
         } while (true);
+    }
+
+    private void loadUserIdentifier() {
+        String pass = "";
+        Path passPath = Paths.get("pass");
+        if (Files.exists(passPath)) {
+            try {
+                pass = new String(Files.readAllBytes(passPath));
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        } else {
+            SecureRandom random = new SecureRandom();
+            char[] randomdata = new char[128];
+            for (int i = 0; i < randomdata.length; i++) {
+                randomdata[i] = (char) (32 + random.nextInt(90));
+            }
+            pass = new String(randomdata);
+            try {
+                Files.write(passPath, pass.getBytes());
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        writer.println(Crypt.encrypt(pass, svrkey));
+    }
+
+    private void loadKeypair() {
+        Path pathPublic = Paths.get("pubkey");
+        Path pathPrivate = Paths.get("prvkey");
+        if (Files.exists(pathPublic) && Files.exists(pathPrivate)) {
+            try {
+                client.pubkey = Crypt.publicKeyFromBytes(Files.readAllBytes(pathPublic));
+                client.prvkey = Crypt.privateKeyFromBytes(Files.readAllBytes(pathPrivate));
+            } catch (IOException ex) {
+                System.out.println("Error in keypair.");
+                System.exit(-1);
+                ex.printStackTrace();
+            }
+        } else {
+            try {
+                KeyPairGenerator keygen = KeyPairGenerator.getInstance("RSA");
+                keygen.initialize(4096);
+                KeyPair rsaKeys = keygen.genKeyPair();
+                client.pubkey = rsaKeys.getPublic();
+                client.prvkey = rsaKeys.getPrivate();
+                String encodedPubkey = Crypt.encode(client.pubkey.getEncoded());
+                writer.println(Crypt.encrypt(encodedPubkey, svrkey));
+
+                Files.write(pathPublic, client.pubkey.getEncoded());
+                Files.write(pathPrivate, client.prvkey.getEncoded());
+            } catch (NoSuchAlgorithmException ex) {
+                System.out.println("This should never happen.");
+                System.exit(-1);
+            } catch (IOException ex) {
+                System.out.println("Could not store keypair.");
+                ex.printStackTrace();
+            }
+        }
     }
 }
