@@ -78,12 +78,12 @@ public class UserThread extends Thread {
 
             user.setOnline(false);
             socket.close();
-            partner.getThread().sendMessage("mYour partner logged off");
+            partner.getThread().sendMessage("m\nYour partner logged off.");
 
         } catch (SocketException ex) {
             user.setOnline(false);
             if (partner != null) {
-                partner.getThread().sendMessage("mYour partner logged off");
+                partner.getThread().sendMessage("m\nYour partner logged off.");
             }
         } catch (IOException ex) {
             System.out.println("Error in UserThread: " + ex.getMessage());
@@ -95,10 +95,10 @@ public class UserThread extends Thread {
         sendMessage("mPlease enter your username:");
         String userName = Crypt.decrypt(reader.readLine(), prvkey);
         if (userName.contains(" ")) {
-            sendMessage("mNo spaces allowed.");
+            sendMessage("mNo spaces allowed.\n");
             getUsername(reader);
         } else if (server.userNameExists(userName)) {
-            sendMessage("mThis user already exists. Try a different name.");
+            sendMessage("mThis user already exists. Try a different name.\n");
             getUsername(reader);
         } else {
             user = new User(userName);
@@ -107,8 +107,8 @@ public class UserThread extends Thread {
 
     private void getPartner(BufferedReader reader) throws IOException {
         if (partner != null) {
-            sendMessage("mYou left your partner.");
-            partner.getThread().sendMessage("mYour partner left you.");
+            sendMessage("m\n\nYou left your partner.");
+            partner.getThread().sendMessage("m\n\nYour partner left you.");
             partner.getThread().partner = null;
         }
         sendMessage("mPlease enter your chat partner's username:");
@@ -116,12 +116,12 @@ public class UserThread extends Thread {
         partner = server.getUserByName(partnerName);
         if (partner == null || partner.getThread().partner != null) {
             partner = null;
-            sendMessage("mThis user is currently not available.");
+            sendMessage("m\nThis user is currently not available.");
             getPartner(reader);
         } else {
-            sendMessage("mYou are now connected to " + partner.getName() + "!\n");
+            sendMessage("m\nYou are now connected to " + partner.getName() + "!\n");
             partner.getThread().partner = user;
-            partner.getThread().sendMessage("mYou are now connected to " + user.getName() + ".\n");
+            partner.getThread().sendMessage("m\nYou are now connected to " + user.getName() + ".\n");
             sendMessage("k" + Crypt.encode(partner.getPubkey()));
             partner.getThread().sendMessage("k" + Crypt.encode(user.getPubkey()));
         }
