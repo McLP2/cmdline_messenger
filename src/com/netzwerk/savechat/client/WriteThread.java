@@ -111,8 +111,6 @@ public class WriteThread extends Thread {
                 KeyPair rsaKeys = keygen.genKeyPair();
                 client.pubkey = rsaKeys.getPublic();
                 client.prvkey = rsaKeys.getPrivate();
-                String encodedPubkey = Crypt.encode(client.pubkey.getEncoded());
-                writer.println(Crypt.encrypt(encodedPubkey, svrkey));
 
                 Files.write(pathPublic, client.pubkey.getEncoded());
                 Files.write(pathPrivate, client.prvkey.getEncoded());
@@ -124,5 +122,8 @@ public class WriteThread extends Thread {
                 ex.printStackTrace();
             }
         }
+
+        String encodedPubkey = Crypt.encode(client.pubkey.getEncoded());
+        writer.println(Crypt.encrypt(encodedPubkey, svrkey));
     }
 }
