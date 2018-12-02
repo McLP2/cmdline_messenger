@@ -49,6 +49,7 @@ public class UserThread extends Thread {
             if (user == null) {
                 getUsername(reader);
                 user.setHash(userHash);
+                server.addUser(user);
             }
             user.setThread(this);
             user.setOnline(true);
@@ -101,7 +102,6 @@ public class UserThread extends Thread {
             getUsername(reader);
         } else {
             user = new User(userName);
-            server.addUser(user);
         }
     }
 
