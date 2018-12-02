@@ -48,8 +48,8 @@ public class UserThread extends Thread {
             user = server.getUserByHash(userHash);
             if (user == null) {
                 getUsername(reader);
+                user.setHash(userHash);
             }
-            user.setHash(userHash);
             user.setThread(this);
             user.setOnline(true);
             user.setPubkey(userKey.getEncoded());
@@ -93,7 +93,10 @@ public class UserThread extends Thread {
     private void getUsername(BufferedReader reader) throws IOException {
         sendMessage("mPlease enter your username:");
         String userName = Crypt.decrypt(reader.readLine(), prvkey);
-        if (server.userNameExists(userName)) {
+        if (userName.contains(" ")) {
+            sendMessage("mNo spaces allowed.");
+            getUsername(reader);
+        } else if (server.userNameExists(userName)) {
             sendMessage("mThis user already exists. Try a different name.");
             getUsername(reader);
         } else {
