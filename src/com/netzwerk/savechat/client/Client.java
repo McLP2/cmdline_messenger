@@ -48,6 +48,16 @@ public class Client {
             }
         } else {
             System.out.println("Parameters: 1. Hostname, 2. Port");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            try {
+                System.out.println("Enter IP-address/hostname:");
+                String line = reader.readLine();
+                if (line.trim().length() > 0) hostname = line.trim();
+                System.out.println("Enter port:");
+                port = Integer.parseInt(reader.readLine());
+            } catch (NumberFormatException | IOException ex) {
+                ex.printStackTrace();
+            }
         }
 
         Client client = new Client(hostname, port);
