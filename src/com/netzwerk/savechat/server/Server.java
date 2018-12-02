@@ -78,9 +78,11 @@ public class Server {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] userData = line.split(" ");
-                User newUser = new User(userData[0]);
-                newUser.setHash(userData[1]);
-                users.add(newUser);
+                if (userData.length == 2) {
+                    User newUser = new User(userData[0]);
+                    newUser.setHash(userData[1]);
+                    users.add(newUser);
+                }
             }
         } catch (FileNotFoundException ex) {
             System.out.println("Warning: There is no users-file. Every user will be handled as new.");
