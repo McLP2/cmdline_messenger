@@ -55,7 +55,7 @@ public class UserThread extends Thread {
             user.setOnline(true);
             user.setPubkey(userKey.getEncoded());
 
-            sendMessage("mHi, " + user.getName() + "!");
+            sendMessage("mHi, " + user.getName() + "!\n");
             sendMessage("mIf you want to connect to a user, type \"!change\" !");
 
             String clientMessage;
@@ -111,12 +111,12 @@ public class UserThread extends Thread {
             partner.getThread().sendMessage("m\n\nYour partner left you.");
             partner.getThread().partner = null;
         }
-        sendMessage("mPlease enter your chat partner's username:");
+        sendMessage("m\nPlease enter your chat partner's username:");
         String partnerName = Crypt.decrypt(reader.readLine(), prvkey);
         partner = server.getUserByName(partnerName);
         if (partner == null || partner.getThread().partner != null) {
             partner = null;
-            sendMessage("m\nThis user is currently not available.");
+            sendMessage("mThis user is currently not available.");
             getPartner(reader);
         } else {
             sendMessage("m\nYou are now connected to " + partner.getName() + "!\n");
