@@ -1,7 +1,10 @@
 package com.netzwerk.savechat.client;
 
-import java.net.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
@@ -50,11 +53,13 @@ public class Client {
             System.out.println("Parameters: 1. Hostname, 2. Port");
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             try {
+                String line;
                 System.out.println("Enter IP-address/hostname:");
-                String line = reader.readLine();
+                line = reader.readLine();
                 if (line.trim().length() > 0) hostname = line.trim();
                 System.out.println("Enter port:");
-                port = Integer.parseInt(reader.readLine());
+                line = reader.readLine();
+                if (line.trim().length() > 0) port = Integer.parseInt(line);
             } catch (NumberFormatException | IOException ex) {
                 ex.printStackTrace();
             }
