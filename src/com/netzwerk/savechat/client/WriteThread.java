@@ -54,8 +54,11 @@ public class WriteThread extends Thread {
             }
             if (text.equals("!exit")) {
                 System.exit(0);
-            } else if (text.substring(0,7).equals("!change")) {
-                writer.println(Crypt.encrypt("p"+text.substring(8), svrkey));
+            } else if (text.equals("!change")) {
+                writer.println(Crypt.encrypt("p", svrkey));
+                client.ptrkey = null;
+            } else if (text.length() > 8 && text.substring(0, 7).equals("!change")) {
+                writer.println(Crypt.encrypt("p" + text.substring(8), svrkey));
                 client.ptrkey = null;
             } else if (client.ptrkey == null) {
                 writer.println(Crypt.encrypt(text, svrkey));

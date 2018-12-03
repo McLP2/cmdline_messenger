@@ -135,7 +135,7 @@ public class UserThread extends Thread {
             if (partner != null) { // partner established connection while user is changing partner
                 partner.getThread().sendMessage(partnerName);
             } else {
-                getPartner(reader, "");
+                getPartner(reader, partnerName);
             }
         }
     }
