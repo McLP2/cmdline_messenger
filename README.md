@@ -19,5 +19,5 @@ To connect to a server, you must have following things:
 Put the client.jar and svrkey files into the same empty directory. Then open a console and run `java -jar client.jar <hostname> <port>`. Switch `<port>` with the port of the server and `<hostname>` with its IP-address/hostname.
 #### Commands
 The server tells you most of the things you have to enter. There are also some commands you can use. Just enter one into the console to use it.
-* `!change` tells the server, you want to connect to a new chat partner. It will tell you what to do next.
+* `!change` tells the server, you want to connect to a new chat partner. Optionally, you can attach the user you want to connect to. For example `!change jane_doe` will connect you to jane_doe, if she is available.
 * `!exit` shuts down the client application.
