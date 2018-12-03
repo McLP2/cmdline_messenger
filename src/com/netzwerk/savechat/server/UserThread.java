@@ -78,17 +78,22 @@ public class UserThread extends Thread {
 
             user.setOnline(false);
             socket.close();
-            partner.getThread().sendMessage("m\nYour partner logged off.");
+            loggedOffPartner();
 
         } catch (SocketException ex) {
             user.setOnline(false);
             if (partner != null) {
-                partner.getThread().sendMessage("m\nYour partner logged off.");
+                loggedOffPartner();
             }
         } catch (IOException ex) {
             System.out.println("Error in UserThread: " + ex.getMessage());
             ex.printStackTrace();
         }
+    }
+
+    private void loggedOffPartner() {
+        partner.getThread().sendMessage("m\nYour partner logged off.");
+        partner.getThread().partner = null;
     }
 
     private void getUsername(BufferedReader reader) throws IOException {
@@ -113,6 +118,10 @@ public class UserThread extends Thread {
         }
         sendMessage("m\nPlease enter your chat partner's username:");
         String partnerName = Crypt.decrypt(reader.readLine(), prvkey);
+        if (partner != null) { // partner established connection while user is changing partner
+            partner.getThread().sendMessage(partnerName);
+            return;
+        }
         partner = server.getUserByName(partnerName);
         if (partner == null || partner.getThread().partner != null) {
             partner = null;
