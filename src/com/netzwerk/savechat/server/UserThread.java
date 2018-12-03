@@ -71,7 +71,7 @@ public class UserThread extends Thread {
                         }
                         break;
                     case 'p':
-                        getPartner(reader);
+                        getPartner(reader, clientMessage.substring(1));
                         break;
                 }
             } while (socket.isConnected());
@@ -110,31 +110,36 @@ public class UserThread extends Thread {
         }
     }
 
-    private void getPartner(BufferedReader reader) throws IOException {
+    private void getPartner(BufferedReader reader, String partnerName) throws IOException {
         if (partner != null) {
             sendMessage("m\n\nYou left your partner.");
             partner.getThread().sendMessage("m\n\nYour partner left you.");
             partner.getThread().partner = null;
         }
-        sendMessage("m\nPlease enter your chat partner's username:");
-        String partnerName = Crypt.decrypt(reader.readLine(), prvkey);
-        if (partner != null) { // partner established connection while user is changing partner
-            partner.getThread().sendMessage(partnerName);
-            return;
-        }
-        partner = server.getUserByName(partnerName);
-        if (partner == null || partner.getThread().partner != null) {
-            partner = null;
-            sendMessage("mThis user is currently not available.");
-            getPartner(reader);
+        if (partnerName.length() > 0) {
+            partner = server.getUserByName(partnerName);
+            if (partner == null || partner.getThread().partner != null) {
+                partner = null;
+                sendMessage("mThis user is currently not available.");
+                getPartner(reader, "");
+            } else {
+                sendMessage("m\nYou are now connected to " + partner.getName() + "!\n");
+                partner.getThread().partner = user;
+                partner.getThread().sendMessage("m\nYou are now connected to " + user.getName() + ".\n");
+                sendMessage("k" + Crypt.encode(partner.getPubkey()));
+                partner.getThread().sendMessage("k" + Crypt.encode(user.getPubkey()));
+            }
         } else {
-            sendMessage("m\nYou are now connected to " + partner.getName() + "!\n");
-            partner.getThread().partner = user;
-            partner.getThread().sendMessage("m\nYou are now connected to " + user.getName() + ".\n");
-            sendMessage("k" + Crypt.encode(partner.getPubkey()));
-            partner.getThread().sendMessage("k" + Crypt.encode(user.getPubkey()));
+            sendMessage("m\nPlease enter your chat partner's username:");
+            partnerName = Crypt.decrypt(reader.readLine(), prvkey);
+            if (partner != null) { // partner established connection while user is changing partner
+                partner.getThread().sendMessage(partnerName);
+            } else {
+                getPartner(reader, "");
+            }
         }
     }
+
 
     private void sendMessage(String message) {
         writer.println(Crypt.encrypt(message, userKey));
