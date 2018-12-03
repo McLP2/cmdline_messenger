@@ -1,4 +1,4 @@
-package com.netzwerk.savechat;
+package com.netzwerk.savechat.keygen;
 
 import java.io.IOException;
 import java.nio.file.Files;
