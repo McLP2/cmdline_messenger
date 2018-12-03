@@ -3,7 +3,7 @@ package com.netzwerk.savechat.client;
 import com.netzwerk.savechat.Crypt;
 
 import java.io.*;
-import java.net.*;
+import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
