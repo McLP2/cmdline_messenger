@@ -3,7 +3,7 @@ package com.netzwerk.savechat.client;
 import com.netzwerk.savechat.Crypt;
 
 import java.io.*;
-import java.net.*;
+import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -110,7 +110,7 @@ public class WriteThread extends Thread {
         } else {
             try {
                 KeyPairGenerator keygen = KeyPairGenerator.getInstance("RSA");
-                keygen.initialize(2048);
+                keygen.initialize(4096);
                 KeyPair rsaKeys = keygen.genKeyPair();
                 client.pubkey = rsaKeys.getPublic();
                 client.prvkey = rsaKeys.getPrivate();
