@@ -94,6 +94,7 @@ public class UserThread extends Thread {
     private void loggedOffPartner() {
         partner.getThread().sendMessage("m\nYour partner logged off.");
         partner.getThread().partner = null;
+        partner = null;
     }
 
     private void getUsername(BufferedReader reader) throws IOException {
