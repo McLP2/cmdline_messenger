@@ -10,7 +10,7 @@ import java.util.Base64;
 
 public class Crypt {
 
-    private static final int AES_BIT = 256;
+    private static final int AES_BIT = 128;
     private static final int AES_LEN = AES_BIT * 2;
 
 

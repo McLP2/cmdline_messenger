@@ -110,7 +110,7 @@ public class WriteThread extends Thread {
         } else {
             try {
                 KeyPairGenerator keygen = KeyPairGenerator.getInstance("RSA");
-                keygen.initialize(4096);
+                keygen.initialize(2048);
                 KeyPair rsaKeys = keygen.genKeyPair();
                 client.pubkey = rsaKeys.getPublic();
                 client.prvkey = rsaKeys.getPrivate();

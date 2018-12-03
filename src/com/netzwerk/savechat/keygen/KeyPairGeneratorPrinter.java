@@ -8,7 +8,7 @@ import java.security.*;
 public class KeyPairGeneratorPrinter {
     public static void main(String[] args) throws NoSuchAlgorithmException {
         KeyPairGenerator keygen = KeyPairGenerator.getInstance("RSA");
-        keygen.initialize(4096);
+        keygen.initialize(2048);
         KeyPair rsaKeys = keygen.genKeyPair();
 
         try {
