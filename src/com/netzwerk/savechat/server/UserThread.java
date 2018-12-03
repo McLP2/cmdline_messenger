@@ -112,14 +112,14 @@ public class UserThread extends Thread {
 
     private void getPartner(BufferedReader reader, String partnerName) throws IOException {
         if (partner != null) {
-            sendMessage("m\n\nYou left your partner.");
             partner.getThread().sendMessage("m\n\nYour partner left you.");
             partner.getThread().partner = null;
+            sendMessage("m\n\nYou left your partner.");
+            partner = null;
         }
         if (partnerName.length() > 0) {
             partner = server.getUserByName(partnerName);
             if (partner == null || partner.getThread().partner != null) {
-                partner = null;
                 sendMessage("mThis user is currently not available.");
                 getPartner(reader, "");
             } else {
