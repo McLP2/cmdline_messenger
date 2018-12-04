@@ -39,14 +39,25 @@ public class Crypt {
         return result;
     }
 
+    @Deprecated
     public static String encrypt(String string, PublicKey publicKey) {
-        byte[] aes_key = new byte[AES_LEN];
-        byte[] data = new byte[40];
         try {
             KeyGenerator generator = KeyGenerator.getInstance("AES");
             generator.init(AES_BIT);
             SecretKey secKey = generator.generateKey();
+            return encrypt(string, publicKey, secKey);
+        } catch (NoSuchAlgorithmException ex) {
+            System.out.println("WTF how did this happen??! " + ex.getMessage());
+            ex.printStackTrace();
+        }
 
+        return "Encryption Error";
+    }
+
+    public static String encrypt(String string, PublicKey publicKey, SecretKey secKey) {
+        byte[] aes_key = new byte[AES_LEN];
+        byte[] data = new byte[40];
+        try {
             // encrypt data
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.ENCRYPT_MODE, secKey);

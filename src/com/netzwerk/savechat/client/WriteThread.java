@@ -2,6 +2,8 @@ package com.netzwerk.savechat.client;
 
 import com.netzwerk.savechat.Crypt;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -14,6 +16,8 @@ public class WriteThread extends Thread {
     private PrintWriter writer;
     private Client client;
     private PublicKey svrkey;
+    private SecretKey secretKey;
+    private SecretKey secretServerKey;
 
     WriteThread(Socket socket, Client client) {
         this.client = client;
@@ -33,10 +37,10 @@ public class WriteThread extends Thread {
             System.out.println("Error reading the server's public key.");
             System.exit(-1);
         }
+        newSecrets();
     }
 
     public void run() {
-
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         // send key
         loadKeypair();
@@ -55,15 +59,15 @@ public class WriteThread extends Thread {
             if (text.equals("!exit")) {
                 System.exit(0);
             } else if (text.equals("!change")) {
-                writer.println(Crypt.encrypt("p", svrkey));
+                writer.println(Crypt.encrypt("p", svrkey, secretServerKey));
                 client.ptrkey = null;
             } else if (text.length() > 8 && text.substring(0, 7).equals("!change")) {
-                writer.println(Crypt.encrypt("p" + text.substring(8), svrkey));
+                writer.println(Crypt.encrypt("p" + text.substring(8), svrkey, secretServerKey));
                 client.ptrkey = null;
             } else if (client.ptrkey == null) {
-                writer.println(Crypt.encrypt(text, svrkey));
+                writer.println(Crypt.encrypt(text, svrkey, secretServerKey));
             } else {
-                writer.println(Crypt.encrypt("e" + Crypt.encrypt(text, client.ptrkey), svrkey));
+                writer.println(Crypt.encrypt("e" + Crypt.encrypt(text, client.ptrkey, secretKey), svrkey, secretServerKey));
             }
 
 
@@ -92,7 +96,7 @@ public class WriteThread extends Thread {
                 ex.printStackTrace();
             }
         }
-        writer.println(Crypt.encrypt(pass, svrkey));
+        writer.println(Crypt.encrypt(pass, svrkey, secretServerKey));
     }
 
     private void loadKeypair() {
@@ -127,6 +131,18 @@ public class WriteThread extends Thread {
         }
 
         String encodedPubkey = Crypt.encode(client.pubkey.getEncoded());
-        writer.println(Crypt.encrypt(encodedPubkey, svrkey));
+        writer.println(Crypt.encrypt(encodedPubkey, svrkey, secretServerKey));
+    }
+
+    void newSecrets() {
+        try {
+            KeyGenerator generator = KeyGenerator.getInstance("AES");
+            generator.init(256);
+            secretServerKey = generator.generateKey();
+            secretKey = generator.generateKey();
+        } catch (NoSuchAlgorithmException ex) {
+            System.out.println("WTF how did this happen??! " + ex.getMessage());
+            ex.printStackTrace();
+        }
     }
 }

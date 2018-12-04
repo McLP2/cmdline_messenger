@@ -2,6 +2,8 @@ package com.netzwerk.savechat.server;
 
 import com.netzwerk.savechat.Crypt;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
@@ -16,6 +18,7 @@ public class UserThread extends Thread {
     private User user, partner;
     private PublicKey userKey;
     private PrivateKey prvkey;
+    private SecretKey secretKey;
 
     UserThread(Socket socket, Server server) {
         this.socket = socket;
@@ -28,6 +31,7 @@ public class UserThread extends Thread {
             System.out.println("Error reading private key.");
             System.exit(-1);
         }
+        newSecret();
     }
 
     public void run() {
@@ -118,6 +122,7 @@ public class UserThread extends Thread {
             sendMessage("m\n\nYou left your partner.");
             partner = null;
         }
+        newSecret();
         if (partnerName.length() > 0) {
             partner = server.getUserByName(partnerName);
             if (partner == null || partner.getThread().partner != null) {
@@ -143,6 +148,17 @@ public class UserThread extends Thread {
 
 
     private void sendMessage(String message) {
-        writer.println(Crypt.encrypt(message, userKey));
+        writer.println(Crypt.encrypt(message, userKey, secretKey));
+    }
+
+    private void newSecret() {
+        try {
+            KeyGenerator generator = KeyGenerator.getInstance("AES");
+            generator.init(256);
+            secretKey = generator.generateKey();
+        } catch (NoSuchAlgorithmException ex) {
+            System.out.println("WTF how did this happen??! " + ex.getMessage());
+            ex.printStackTrace();
+        }
     }
 }

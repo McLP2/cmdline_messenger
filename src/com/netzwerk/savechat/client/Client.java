@@ -26,9 +26,11 @@ public class Client {
             Socket socket = new Socket(hostname, port);
 
             System.out.println("Establishing encryption...");
+            WriteThread writeThread = new WriteThread(socket, this);
+            ReadThread readThread = new ReadThread(socket, this, writeThread);
 
-            new ReadThread(socket, this).start();
-            new WriteThread(socket, this).start();
+            readThread.start();
+            writeThread.start();
 
         } catch (UnknownHostException ex) {
             System.out.println("Server not found: " + ex.getMessage());
