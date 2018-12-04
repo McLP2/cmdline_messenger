@@ -122,7 +122,6 @@ public class UserThread extends Thread {
             sendMessage("m\n\nYou left your partner.");
             partner = null;
         }
-        newSecret();
         if (partnerName.length() > 0) {
             partner = server.getUserByName(partnerName);
             if (partner == null || partner.getThread().partner != null) {
