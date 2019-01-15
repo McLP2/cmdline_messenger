@@ -66,7 +66,7 @@ public class Crypt {
         byte[] data = new byte[40];
         try {
             // generate initialization vector
-            SecureRandom secureRandom = SecureRandom.getInstanceStrong();
+            SecureRandom secureRandom = new SecureRandom();
             secureRandom.nextBytes(iv);
             IvParameterSpec ivspec = new IvParameterSpec(iv);
             // encrypt data
