@@ -19,6 +19,7 @@ public class UserThread extends Thread {
     private PublicKey userKey;
     private PrivateKey prvkey;
     private SecretKey secretKey;
+    private boolean stop = false;
 
     UserThread(Socket socket, Server server) {
         this.socket = socket;
@@ -55,6 +56,9 @@ public class UserThread extends Thread {
                 user.setHash(userHash);
                 server.addUser(user);
             }
+            if (user.isOnline()) {
+                user.getThread().kill();
+            }
             user.setThread(this);
             user.setOnline(true);
             user.setPubkey(userKey.getEncoded());
@@ -66,6 +70,11 @@ public class UserThread extends Thread {
 
             do {
                 clientMessage = Crypt.decrypt(reader.readLine(), prvkey);
+                if (stop) {
+                    sendMessage("mYou are connected on a different instance!");
+                    socket.close();
+                    return;
+                }
                 switch (clientMessage.charAt(0)) {
                     case 'e':
                         if (partner != null) {
@@ -93,6 +102,10 @@ public class UserThread extends Thread {
             System.out.println("Error in UserThread: " + ex.getMessage());
             ex.printStackTrace();
         }
+    }
+
+    private void kill() {
+        stop = true;
     }
 
     private void loggedOffPartner() {
