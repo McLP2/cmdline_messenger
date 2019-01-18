@@ -139,8 +139,13 @@ public class UserThread extends Thread {
         }
         if (partnerName.length() > 0) {
             partner = server.getUserByName(partnerName);
-            if (partner == null || partner.getThread().partner != null) {
+            if (partner == user) {
+                sendMessage("mYou can not connect to yourself.");
+                partner = null;
+                getPartner(reader, "");
+            } else if (partner == null || partner.getThread().partner != null) {
                 sendMessage("mThis user is currently not available.");
+                partner = null;
                 getPartner(reader, "");
             } else {
                 sendMessage("m\nYou are now connected to " + partner.getName() + "!\n");
