@@ -7,7 +7,6 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Arrays;
 import java.util.Base64;
 
 public class Crypt {
@@ -119,15 +118,23 @@ public class Crypt {
     }
 
     public static PublicKey publicKeyFromBytes(byte[] keyBytes) {
+        return publicKeyFromBytes(keyBytes, true);
+    }
+
+    public static PublicKey publicKeyFromBytes(byte[] keyBytes, boolean verbose) {
         PublicKey result = null;
         try {
             result = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(keyBytes));
         } catch (NoSuchAlgorithmException ex) {
-            System.out.println("WTF how did this happen??! " + ex.getMessage());
-            ex.printStackTrace();
+            if (verbose) {
+                System.out.println("WTF how did this happen??! " + ex.getMessage());
+                ex.printStackTrace();
+            }
         } catch (InvalidKeySpecException ex) {
-            System.out.println("Error: " + ex.getMessage());
-            ex.printStackTrace();
+            if (verbose) {
+                System.out.println("Error: " + ex.getMessage());
+                ex.printStackTrace();
+            }
         }
         return result;
     }

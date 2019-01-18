@@ -5,13 +5,15 @@ import com.netzwerk.savechat.Crypt;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.io.*;
-import java.net.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.*;
+import java.net.Socket;
+import java.net.SocketException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 
 public class UserThread extends Thread {
 
+    private PublicKey pubkey;
     private Socket socket;
     private Server server;
     private PrintWriter writer;
@@ -21,17 +23,11 @@ public class UserThread extends Thread {
     private SecretKey secretKey;
     private boolean stop = false;
 
-    UserThread(Socket socket, Server server) {
+    UserThread(Socket socket, Server server, PrivateKey privateKey, PublicKey publicKey) {
         this.socket = socket;
         this.server = server;
-
-        try {
-            byte[] prvbytes = Files.readAllBytes(Paths.get("prvkey"));
-            prvkey = Crypt.privateKeyFromBytes(prvbytes);
-        } catch (IOException ex) {
-            System.out.println("Error reading private key.");
-            System.exit(-1);
-        }
+        this.prvkey = privateKey;
+        this.pubkey = publicKey;
         newSecret();
     }
 
@@ -44,8 +40,14 @@ public class UserThread extends Thread {
             OutputStream output = socket.getOutputStream();
             writer = new PrintWriter(output, true);
 
+            // send key if necessary
+            String firstMessage = reader.readLine();
+            if (firstMessage.equals("getkey")) {
+                writer.println(Crypt.encode(pubkey.getEncoded()));
+                firstMessage = reader.readLine();
+            }
             // get key
-            String userKeyEncoded = Crypt.decrypt(reader.readLine(), prvkey);
+            String userKeyEncoded = Crypt.decrypt(firstMessage, prvkey);
             userKey = Crypt.publicKeyFromBytes(Crypt.decode(userKeyEncoded));
             sendMessage("mWelcome to the server!\n ");
             // get user

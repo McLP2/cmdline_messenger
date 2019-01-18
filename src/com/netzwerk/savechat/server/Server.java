@@ -1,13 +1,23 @@
 package com.netzwerk.savechat.server;
 
+import com.netzwerk.savechat.Crypt;
+
 import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Server {
 
     private int port;
     private Set<User> users = new HashSet<>();
+    private PublicKey pubkey;
+    private PrivateKey prvkey;
 
     private Server(int port) {
         this.port = port;
@@ -15,6 +25,7 @@ public class Server {
 
     private void execute() {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
+            loadKeys();
             loadUsers();
 
             System.out.println("Chat Server is listening on port " + port);
@@ -24,7 +35,7 @@ public class Server {
             while (true) {
                 Socket socket = serverSocket.accept();
 
-                UserThread newUser = new UserThread(socket, this);
+                UserThread newUser = new UserThread(socket, this, prvkey, pubkey);
                 newUser.start();
 
             }
@@ -50,6 +61,18 @@ public class Server {
 
         Server server = new Server(port);
         server.execute();
+    }
+
+    private void loadKeys() {
+        try {
+            byte[] prvbytes = Files.readAllBytes(Paths.get("prvkey"));
+            prvkey = Crypt.privateKeyFromBytes(prvbytes);
+            byte[] pubbytes = Files.readAllBytes(Paths.get("svrkey"));
+            pubkey = Crypt.publicKeyFromBytes(pubbytes);
+        } catch (IOException ex) {
+            System.out.println("Error reading keys.");
+            System.exit(-1);
+        }
     }
 
     private void saveUsers() {

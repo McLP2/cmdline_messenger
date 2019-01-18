@@ -2,17 +2,23 @@ package com.netzwerk.savechat.client;
 
 import com.netzwerk.savechat.Crypt;
 
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class ReadThread extends Thread {
     private BufferedReader reader;
     private Client client;
     private WriteThread writeThread;
+    private boolean keymode = false;
 
-    ReadThread(Socket socket, Client client, WriteThread writeThread) {
+    ReadThread(Socket socket, Client client) {
         this.client = client;
-        this.writeThread = writeThread;
         try {
             InputStream input = socket.getInputStream();
             reader = new BufferedReader(new InputStreamReader(input));
@@ -22,10 +28,26 @@ public class ReadThread extends Thread {
         }
     }
 
+    void setWriteThread(WriteThread writeThread) {
+        this.writeThread = writeThread;
+    }
+
     public void run() {
         while (true) {
             try {
                 String response = reader.readLine();
+                if (keymode) {
+                    byte[] keybytes = Crypt.decode(response);
+                    writeThread.setKey(Crypt.publicKeyFromBytes(keybytes));
+                    keymode = false;
+                    Path pathServerOld = Paths.get("svrkey.old");
+                    Path pathServer = Paths.get("svrkey");
+                    if (Files.exists(pathServer))
+                        Files.move(pathServer, pathServerOld, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    Files.write(pathServer, keybytes);
+                    System.out.println("Server fingerprint: " + Crypt.hash(keybytes));
+                    continue;
+                }
                 String message = Crypt.decrypt(response, client.prvkey);
                 switch (message.charAt(0)) {
                     case 'm':
@@ -50,5 +72,9 @@ public class ReadThread extends Thread {
                 break;
             }
         }
+    }
+
+    void getKeyMode() {
+        keymode = true;
     }
 }
