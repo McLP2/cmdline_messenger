@@ -4,12 +4,20 @@ import com.netzwerk.savechat.Crypt;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.*;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.SecureRandom;
 
 public class WriteThread extends Thread {
 
@@ -19,8 +27,6 @@ public class WriteThread extends Thread {
     private SecretKey secretKey;
     private SecretKey secretServerKey;
     private ReadThread readThread;
-    private volatile boolean running = true;
-    private volatile boolean paused = false;
     private final Object pauseLock = new Object();
 
     WriteThread(Socket socket, Client client) {
@@ -112,7 +118,6 @@ public class WriteThread extends Thread {
 
     private void unfreeze() {
         synchronized (pauseLock) {
-            paused = false;
             pauseLock.notifyAll(); // Unblocks thread
         }
     }
