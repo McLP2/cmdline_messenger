@@ -19,6 +19,9 @@ public class WriteThread extends Thread {
     private SecretKey secretKey;
     private SecretKey secretServerKey;
     private ReadThread readThread;
+    private volatile boolean running = true;
+    private volatile boolean paused = false;
+    private final Object pauseLock = new Object();
 
     WriteThread(Socket socket, Client client) {
         this.client = client;
@@ -42,6 +45,7 @@ public class WriteThread extends Thread {
 
     void setKey(PublicKey svrkey) {
         this.svrkey = svrkey;
+        unfreeze();
     }
 
     private void getKey() {
@@ -56,7 +60,12 @@ public class WriteThread extends Thread {
 
     public void run() {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        if (svrkey == null) getKey();
+        if (svrkey == null) {
+            getKey();
+            freeze();
+            System.out.println("If this is correct fingerprint, enter !accept otherwise !exit.");
+            checkFingerprint(reader);
+        }
 
         // send key
         loadKeypair();
@@ -88,6 +97,56 @@ public class WriteThread extends Thread {
 
 
         } while (true);
+    }
+
+    private void freeze() {
+        synchronized (pauseLock) {
+            try {
+                pauseLock.wait();
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+
+        }
+    }
+
+    private void unfreeze() {
+        synchronized (pauseLock) {
+            paused = false;
+            pauseLock.notifyAll(); // Unblocks thread
+        }
+    }
+
+    private void checkFingerprint(BufferedReader reader) {
+        try {
+            String answer = reader.readLine();
+            switch (answer) {
+                case "!accept":
+                    saveServerKey();
+                    return;
+                case "!exit":
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Please enter !accept or !exit.");
+                    checkFingerprint(reader);
+                    break;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveServerKey() {
+        try {
+            Path pathServerOld = Paths.get("svrkey.old");
+            Path pathServer = Paths.get("svrkey");
+            if (Files.exists(pathServer))
+                Files.move(pathServer, pathServerOld, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            Files.write(pathServer, svrkey.getEncoded());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void loadUserIdentifier() {

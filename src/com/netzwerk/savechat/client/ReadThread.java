@@ -38,14 +38,9 @@ public class ReadThread extends Thread {
                 String response = reader.readLine();
                 if (keymode) {
                     byte[] keybytes = Crypt.decode(response);
-                    writeThread.setKey(Crypt.publicKeyFromBytes(keybytes));
                     keymode = false;
-                    Path pathServerOld = Paths.get("svrkey.old");
-                    Path pathServer = Paths.get("svrkey");
-                    if (Files.exists(pathServer))
-                        Files.move(pathServer, pathServerOld, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                    Files.write(pathServer, keybytes);
                     System.out.println("Server fingerprint: " + Crypt.hash(keybytes));
+                    writeThread.setKey(Crypt.publicKeyFromBytes(keybytes));
                     continue;
                 }
                 String message = Crypt.decrypt(response, client.prvkey);
