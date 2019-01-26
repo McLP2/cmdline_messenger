@@ -69,7 +69,7 @@ public class WriteThread extends Thread {
         if (svrkey == null) {
             getKey();
             freeze();
-            System.out.println("If this is correct fingerprint, enter !accept otherwise !exit.");
+            System.out.println("If this is the correct fingerprint, enter !accept otherwise !exit.");
             checkFingerprint(reader);
         }
 
