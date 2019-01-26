@@ -34,10 +34,17 @@ public class ReadThread extends Thread {
                     case 'k':
                         client.ptrkey = Crypt.publicKeyFromBytes(Crypt.decode(message.substring(1)));
                         writeThread.newSecrets();
-                        byte[] pubbytes = client.ptrkey.getEncoded();
+                        byte[] pubbytes1 = client.ptrkey.getEncoded();
                         byte[] pubbytes2 = client.pubkey.getEncoded();
-                        byte[] hashbytes = new byte[pubbytes.length];
-                        for (int i = 0; i < pubbytes.length; i++) hashbytes[i] = (byte) (pubbytes[i] ^ pubbytes2[i]);
+                        byte[] hashbytes = new byte[pubbytes1.length + pubbytes2.length];
+                        // concat arrays in an order depending on the content
+                        if (firstIsSmaller(pubbytes1, pubbytes2)) {
+                            System.arraycopy(pubbytes1, 0, hashbytes, 0, pubbytes1.length);
+                            System.arraycopy(pubbytes2, 0, hashbytes, pubbytes1.length, pubbytes2.length);
+                        } else {
+                            System.arraycopy(pubbytes2, 0, hashbytes, 0, pubbytes2.length);
+                            System.arraycopy(pubbytes1, 0, hashbytes, pubbytes2.length, pubbytes1.length);
+                        }
                         System.out.println("Common fingerprint: " + Crypt.hash(hashbytes) + "\n\n");
                         break;
                     case 'e':
@@ -50,5 +57,16 @@ public class ReadThread extends Thread {
                 break;
             }
         }
+    }
+
+    private boolean firstIsSmaller(byte[] a, byte[] b) {
+        int minLength = Math.min(a.length, b.length);
+        for (int i = 0; i < minLength; i++) {
+            byte valueA = a[i];
+            byte valueB = b[i];
+            if (valueA != valueB) return valueA < valueB;
+        }
+        // i don't believe this can happen but...
+        return a.length < b.length;
     }
 }
