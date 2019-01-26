@@ -27,7 +27,9 @@ public class Client {
 
             System.out.println("Establishing encryption...");
             WriteThread writeThread = new WriteThread(socket, this);
-            ReadThread readThread = new ReadThread(socket, this, writeThread);
+            ReadThread readThread = new ReadThread(socket, this);
+            writeThread.setReadThread(readThread);
+            readThread.setWriteThread(writeThread);
 
             readThread.start();
             writeThread.start();

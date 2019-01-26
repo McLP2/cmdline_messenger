@@ -18,6 +18,7 @@ public class WriteThread extends Thread {
     private PublicKey svrkey;
     private SecretKey secretKey;
     private SecretKey secretServerKey;
+    private ReadThread readThread;
 
     WriteThread(Socket socket, Client client) {
         this.client = client;
@@ -32,16 +33,31 @@ public class WriteThread extends Thread {
 
         try {
             byte[] pubbytes = Files.readAllBytes(Paths.get("svrkey"));
-            svrkey = Crypt.publicKeyFromBytes(pubbytes);
+            svrkey = Crypt.publicKeyFromBytes(pubbytes, false);
         } catch (IOException ex) {
             System.out.println("Error reading the server's public key.");
-            System.exit(-1);
         }
         newSecrets();
     }
 
+    void setKey(PublicKey svrkey) {
+        this.svrkey = svrkey;
+    }
+
+    private void getKey() {
+        System.out.println("Asking the server for a key...");
+        readThread.getKeyMode();
+        writer.println("getkey");
+    }
+
+    void setReadThread(ReadThread readThread) {
+        this.readThread = readThread;
+    }
+
     public void run() {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        if (svrkey == null) getKey();
+
         // send key
         loadKeypair();
 
@@ -112,6 +128,7 @@ public class WriteThread extends Thread {
                 ex.printStackTrace();
             }
         } else {
+            System.out.println("Please wait a moment...");
             try {
                 KeyPairGenerator keygen = KeyPairGenerator.getInstance("RSA");
                 keygen.initialize(4096);
